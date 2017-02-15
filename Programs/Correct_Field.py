@@ -139,8 +139,6 @@ def Make_Table(data_file):
 
     flag = Flags(b)   #will generate the list of flagged objects
 
-    f.close()
-
     all_list = range(len(b)-3)
 
     good_list = [x for x in range((len(b))-3) if x not in flag]    #List of fair objects in the epoch. (len(b)-3) is total no of objects in the csv file.
@@ -159,6 +157,7 @@ def Make_Table(data_file):
             value = values[:6] + values[8:12] + values[16:18] + values[6:7] + [False]  #possible because list concatenation preserves the order, like string concatenation.
             tabl.add_row(value)
 
+    f.close()
         
     return tabl
 
