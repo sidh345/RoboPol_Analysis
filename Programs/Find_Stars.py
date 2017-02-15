@@ -13,6 +13,8 @@ The code below, after listing all the data files of the field, does the followin
 6. Create a catlogue of all objects in the field.
 7. Store the data in a common directory with a seperate directory for each field.
 
+#Right now I am not putting any SNR cuts on P. Will do that later. 
+
 """
 
 import glob2
@@ -51,7 +53,7 @@ def Make_Catalog(blazar):
         os.mkdir(analysis_dir)
 
     margin = 0.0010   #margin to find an object within that error rA  and Dec radius, equals about 6/7 arc seconds.
-    snr = 2.5       #a cut off snr for p measurement. Magnitude is not an issue
+    #snr = 2.5       #a cut off snr for p measurement. Magnitude is not an issue
     syserr = 0.0034   #error due to the model emplyed
 
 
@@ -60,7 +62,7 @@ def Make_Catalog(blazar):
 
     for k in range(len(f)):              #actual data content starts from the fourth line onwards
         tab = Table()                      # create an astropy table for each object in the field
-        tab = Table(names=('ObjectNo', 'Epoch', 'X-coord', 'Y-coord', 'RA', 'Dec','p','error_p','Theta', 'q', 'error_q', 'u', 'error_u', 'mag', 'error_mag','Year','Month','Date'))#, dtypes=('i4', 'i4', 'f16','f16','f16','f16','f16','f16','f16','f16', 'f16', 'f16','S16','S16','S16' ))
+        tab = Table(names=('ObjectNo', 'Epoch', 'X-coord', 'Y-coord', 'RA', 'Dec','p','error_p','Theta', 'q', 'error_q', 'u', 'error_u', 'mag', 'error_mag','Fair','Year','Month','Date'))#, dtypes=('i4', 'i4', 'f8','f8','f8','f8','f8','f8','f8','f8', 'f8', 'f8','S8','S8','S8' ))
         
         b = f[k]       #b is an astropy row
 
@@ -96,16 +98,18 @@ def Make_Catalog(blazar):
         Theta = float(b[12])
         theta = Theta*(180/math.pi)                                 #convert theta from radians to degrees 
 
+        fair = b[13]                                                #whether object is fair
+
         sig_p = ((((sig_q**2)*(q**2)) + ((sig_u**2)*(u**2)))/((q**2) + (u**2)))**0.5
 
         p = (abs((p**2)-(sig_p**2)))**(0.5)  #debiasing p measurement.
         p_snr = p/sig_p
 
-        data1 = k, 0, X, Y, Ra, Dec, p, sig_p,theta, q, sig_q, u, sig_u, mag, sig_mag, year, month, date   #list of data to be written to a table
+        data1 = k, 0, X, Y, Ra, Dec, p, sig_p,theta, q, sig_q, u, sig_u, mag, sig_mag, fair year, month, date   #list of data to be written to a table
 
         
-        if p_snr >= snr:# and q_snr >= snr:
-            tab.add_row(data1)
+        #if p_snr >= snr:# and q_snr >= snr:
+        tab.add_row(data1)
         
         for m in range(1,len(data_files)):
             g = Table.read(data_files[m], format='ascii')
@@ -123,6 +127,8 @@ def Make_Catalog(blazar):
 
                 P_snr = P/sig_P
 
+                FAIR = t[13]                # is the object fair?
+
                 DATE = data_files[m].split("_")
                 Year = DATE[0]
                 Month = DATE[1]
@@ -130,11 +136,11 @@ def Make_Catalog(blazar):
                 #DATE = str(("[0_").join(DATE))
 
 
-                if P_snr >= snr:# and U_snr >= snr:
-                    if abs(Ra - float(t[2])) <= margin and abs(Dec - float(t[3])) <= margin:
+                #if P_snr >= snr:# and U_snr >= snr:
+                if abs(Ra - float(t[2])) <= margin and abs(Dec - float(t[3])) <= margin:
 
-                        data2 = k, m, float(t[0]),float(t[1]),float(t[2]),float(t[3]), float(t[4]), sig_P, (180/math.pi)*float(t[12]), Q, q_error, U, u_error,float(t[10]),float(t[11]), Year, Month, Date
-                        tab.add_row(data2)
+                    data2 = k, m, float(t[0]),float(t[1]),float(t[2]),float(t[3]), float(t[4]), sig_P, (180/math.pi)*float(t[12]), Q, q_error, U, u_error,float(t[10]),float(t[11]),FAIR, Year, Month, Date
+                    tab.add_row(data2)
 
         tab.write(analysis_dir +"/" + blazar + '_'+ str(k) + '.dat', format = 'ascii')          #file in which data from all epochs of a given star is written
         print "A new star found", str(blazar)+"_"+str(k)
@@ -161,6 +167,7 @@ print "Stars Found"
 #revision 2: added snr cut off based on revised p from syserror. Feb 6, 2017.
 #revision 3: verified on 8 Feb, 2017.
 #revision attempt 3: trying to include date info in star table. 8 Feb, 8.52 pm starting. Done successfully.
+#revision 4: trying to add bollean character to the stars table.
 
 ##end of code     
 

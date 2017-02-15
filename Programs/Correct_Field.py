@@ -7,7 +7,7 @@ Collect all these data.csv files, and on each of them do the following operation
 
     1. Find objects affected by any of the systematics of RoboPol(flat errors due to dust specks, nearby object contamination, Sextractor flagged objects etc).
 
-    2. For all other objects, make an astropy table which will have only clean objects and their important parameters, which I will use with further codes for finding standard stars.
+    2. For all objects, make an astropy table. Clean objects will have boolean value True and and contaminated objects will have False. Also write with the objetctheir important parameters, which I will use with further codes for finding standard stars.
 
 ***************************************************************************************************
 """
@@ -135,20 +135,30 @@ def Make_Table(data_file):
     print "Total no of objects in the field = ", (len(b)-3)
 
     # make an astropy table that will conatin data for all fair objects in the field.
-    tabl = Table(names=(['X-coord', 'Y-coord', 'RA', 'Dec','p','error_p', 'q', 'error_q', 'u', 'error_u', 'mag', 'error_mag','Theta']), dtypes=('f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8'))
+    tabl = Table(names=(['X-coord', 'Y-coord', 'RA', 'Dec','p','error_p', 'q', 'error_q', 'u', 'error_u', 'mag', 'error_mag','Theta','Fair_Object']), dtypes=('f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8'))
 
-    flag = Flags(b)   #will generate the list of flagged objects 
+    flag = Flags(b)   #will generate the list of flagged objects
+
+    f.close()
+
+    all_list = range(len(b)-3)
 
     good_list = [x for x in range((len(b))-3) if x not in flag]    #List of fair objects in the epoch. (len(b)-3) is total no of objects in the csv file.
     print "total no of fair objects in the field", (len(good_list))
 
     print "  "
 
-    # Set of lines to add the parameter values of good objects to the astropy table. 
-    for k in good_list:
-        values = b[k+3].split(",")  #read the line b[k+3] and parse the field entries seperated by commas as it is csv file.
-        value = values[:6] + values[8:12] + values[16:18] + values[6:7]  #possible because list concatenation preserves the order, like string concatenation.
-        tabl.add_row(value)
+    # Set of lines to add the parameter values of all objects to the astropy table. 
+    for k in all_list:  
+        if k in good_list:
+            values = b[k+3].split(",")  #read the line b[k+3] and parse the field entries seperated by commas as it is csv file.
+            value = values[:6] + values[8:12] + values[16:18] + values[6:7] + [True]  #possible because list concatenation preserves the order, like string concatenation.
+            tabl.add_row(value)
+        else:
+            values = b[k+3].split(",")  #read the line b[k+3] and parse the field entries seperated by commas as it is csv file.
+            value = values[:6] + values[8:12] + values[16:18] + values[6:7] + [False]  #possible because list concatenation preserves the order, like string concatenation.
+            tabl.add_row(value)
+
         
     return tabl
 
@@ -199,6 +209,7 @@ print "job done"
 
 #I have gone through the revision and verification of code. 3/2/2017.
 #Revised again on 7/2/2017 and 8/2/2017.
+#Revised again on 15 February to add boolean character for bad fields.
 
 
 

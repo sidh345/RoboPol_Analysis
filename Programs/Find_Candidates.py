@@ -21,6 +21,13 @@ Candidate_Dir = os.path.join("/media/user/Seagate Backup Plus Drive/DATA/RoboPol
 if not os.path.exists(Candidate_Dir):
     os.mkdir(Candidate_Dir)
 
+
+# Directory where all objects with their fair readings will be stored.
+Catalog_Dir = os.path.join("/media/user/Seagate Backup Plus Drive/DATA/RoboPol/Candidates","Catalog")
+if not os.path.exists(Catalog_Dir):
+    os.mkdir(Catalog_Dir)
+
+
 #Directory where all the RoboPol stars in astropt table format are kept.
 Star_Catalog_Dir = "/media/user/Seagate Backup Plus Drive/DATA/RoboPol/RoboPol_Stars"
 os.chdir(Star_Catalog_Dir)
@@ -30,6 +37,7 @@ print os.listdir(os.getcwd())
 #criterion for selecting a good candidate. Should be visible in at least 5 epochs with good snr measurement.
 R = 1.3                                                         #The magic ratio for candidates
 Min_Epochs = 5
+SNR = 2.5
 
 
 
@@ -48,13 +56,19 @@ print "Total no of RoboPol Stars:", len(table_files)
 for k in table_files:
     tabe = Table.read(k, format = 'ascii')           #open each table one by one
 
-#    ad = []                                          # a list to contain the row no of the table that do not satisfy the SNR criterion
-#    for n in range(len(q)):                        #collects data for each row of the table
-#        if p[n]/error_p[n] <= SNR:
-#            ad.append(n)
-#    tabe.remove_rows(ad)                             #remove the rows from the table.
-            
-    if len(tabe['p']) >= Min_Epochs:                    #minimum no of obsevations required
+    pol = tabe['p']
+    error_pol = table['error_p']
+
+    fairness =  tabe['Fair']
+
+    ad = []                                          # a list to contain the row no of the table that do not satisfy the SNR criterion
+    for n in range(len(pol)):                        #collects data for each row of the table
+        if pol[n]/error_pol[n] <= SNR or fairness != 1:
+            ad.append(n)
+    tabe.remove_rows(ad)                             #remove the rows from the table.
+    tabe.write(Catalog_Dir +"/"+ k + ".dat", format='ascii')
+
+    if len(tabe['p']) >= Min_Epochs:                 #minimum no of obsevations required
         p = numpy.median(tabe['p'])
 
         Theta = numpy.median(tabe['Theta'])
@@ -102,6 +116,7 @@ candidates.write(Candidate_Dir + '/' + 'candidates.dat', format = 'ascii')
 
 print "JoB Done"
 
-#code revised and reviewed on 3 Feb/2017.
-#code reviewed on 8 Feb, 2017. No change.
+#Code revised and reviewed on 3 Feb/2017.
+#Code reviewed on 8 Feb, 2017. No change.
+#Code modified to introduce boolean filter for good objects. 15 Feb, 2017. 
 ##end of code 
