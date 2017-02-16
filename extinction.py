@@ -1,3 +1,5 @@
+#These are peices of code written by Gina to create a p Vrs E-V plot for the candidates.
+
 from urllib import urlretrieve
 import time
 import glob
@@ -55,7 +57,7 @@ READ = False
 
 if READ:
     # Loop over stars and get coordinates and p
-    fop = open('CandidatesJD/candidates.dat')
+    fop = open('/media/user/Seagate Backup Plus Drive/DATA/RoboPol/Candidates/candidates.dat')
     fop.readline()
     ras = []
     decs = []
@@ -98,7 +100,7 @@ plt.axhline(0.04, c = 'k',ls = '--')
 plt.ylim(ymin = 0, ymax = 0.11)
 plt.xlim(xmin = 0)
 plt.xlabel('$A_V$')
-plt.ylabel('p_debiased (for $\sigma_p$=p/3)')
-plt.savefig('p-Av-schlafly14.png')
+plt.ylabel('p_debiased')
+plt.savefig('/media/user/Seagate Backup Plus Drive/DATA/RoboPol/Candidates/p-Av-schlafly14.png')
 plt.show()
 
